@@ -1,24 +1,37 @@
 FROM balenalib/raspberrypi3-debian:stretch
 
 # Install requirements
-RUN apt-get update && apt-get install iptables
+RUN apt-get update --yes && apt-get install iptables apt-utils ---yes
 
 # Download and install docker.
 RUN curl -fSLs https://get.docker.com | sudo sh
 
 # Download and install the standard libiothsm implementation
-RUN curl -L https://aka.ms/libiothsm-std-linux-armhf-latest -o libiothsm-std.deb && sudo dpkg -i ./libiothsm-std.deb
+RUN curl -L https://github.com/Azure/azure-iotedge/releases/download/1.1.1/libiothsm-std_1.1.1-1-1_debian9_armhf.deb -o libiothsm-std && sudo dpkg -i ./libiothsm-std
+
 # Download and install the IoT Edge Security Daemon
-RUN curl -L https://aka.ms/iotedged-linux-armhf-latest -o iotedge.deb && sudo dpkg -i ./iotedge.deb
+RUN curl -L https://github.com/Azure/azure-iotedge/releases/download/1.1.1/iotedge_1.1.1-1_debian9_armhf.deb -o iotedge.deb && sudo dpkg -i ./iotedge.deb
 
 # Run apt-get fix
-RUN sudo apt-get install -f
+RUN sudo apt-get install -f --yes
 
+# Configure iotedge
+WORKDIR /etc/iotedge
+COPY config.yaml config.yaml
+# listen
+#RUN sed -i '/iotedge.mgmt.socket/c\  management_uri: \"unix:\/\/\/var\/lib\/iotedge\/mgmt.sock\"' ./config.yaml
+#RUN sed -i '/iotedge.socket/c\  workload_uri: \"unix:\/\/\/var\/lib\/iotedge\/workload.sock\"' ./config.yaml
+# connect
+#RUN sed -i '/management_uri: \"unix:\/\/\/var\/run\/iotedge\/mgmt.sock\"/c\  management_uri: \"unix:\/\/\/var\/lib\/iotedge\/mgmt.sock\"' ./config.yaml
+#RUN sed -i '/workload_uri: \"unix:\/\/\/var\/run\/iotedge\/workload.sock\"/c\  workload_uri: \"unix:\/\/\/var\/lib\/iotedge\/workload.sock\"' ./config.yaml
+# runtime
+#RUN sed -i '/moby_runtime:/c\  # moby_runtime:' ./config.yaml
+#RUN sed -i '/uri: \"unix:\/\/\/var\/run\/docker.sock\"/c\  # uri: \"unix:\/\/\/var\/run\/docker.sock\"' ./config.yaml
+
+# Startup script
 WORKDIR /usr/src/app
-
 COPY start.sh .
 RUN chmod +x start.sh
 
-COPY config.yaml config.yaml
-
+# Run startup script
 CMD [ "./start.sh" ]

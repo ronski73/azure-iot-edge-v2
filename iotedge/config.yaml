@@ -30,7 +30,7 @@
 # Manual provisioning configuration
 provisioning:
   source: "manual"
-  device_connection_string: "<CONNECTION STRING>"
+  device_connection_string: "HostName=balena.azure-devices.net;DeviceId=mars-rover01;SharedAccessKey=2pQLt1MiAuEDoIgGabAJkUpfUtQdjjdj0xVxx3zzDlQ="
 
 # DPS TPM provisioning configuration
 # provisioning:
